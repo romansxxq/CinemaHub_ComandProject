@@ -13,8 +13,8 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-# 2. Фільм
-class Movie(models.fields.Model):
+# Фільм
+class Movie(models.Model):
     title = models.CharField(max_length=255, verbose_name="Name film")
     description = models.TextField(verbose_name="Description", blank=True)
     poster_url = models.URLField(verbose_name="Poster URL", blank=True, null=True)
@@ -28,7 +28,7 @@ class Movie(models.fields.Model):
 
 # 3. Зал
 class Hall(models.Model):
-    name = models.CharField(max_length=50, verbose_name="Name of the hall (e.g., Red Hall)")
+    name = models.CharField(max_length=50, verbose_name="Name of the hall")
     
     def __str__(self):
         return self.name
@@ -84,4 +84,4 @@ class Booking(models.Model):
         unique_together = ('session', 'seat')
 
     def __str__(self):
-        return f"Квиток {self.id} - {self.user.email} - {self.status}"
+        return f"Ticket {self.id} - {self.user.email} - {self.status}"
