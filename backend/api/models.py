@@ -15,25 +15,25 @@ class User(AbstractUser):
 
 # Фільм
 class Movie(models.Model):
-    title = models.CharField(max_length=255, verbose_name="Name film")
+    title = models.CharField(max_length=255, verbose_name="Name film", blank=True)
     description = models.TextField(verbose_name="Description", blank=True)
     poster_url = models.URLField(verbose_name="Poster URL", blank=True, null=True)
-    duration = models.PositiveIntegerField(verbose_name="Duration (minutes)")
+    trailer_url = models.URLField(verbose_name="Trailer URL", blank=True, null=True)
+    duration = models.PositiveIntegerField(verbose_name="Duration (minutes)", blank=True)
     
-    # Поля для інтеграції з зовнішнім API (як ми обговорювали)
-    tmdb_id = models.IntegerField(unique=True, null=True, blank=True, verbose_name="ID в TMDB")
+    imdb_id = models.CharField(max_length=20, unique=True, null=True, blank=True, verbose_name="IMDb ID")
     
     def __str__(self):
         return self.title
 
-# 3. Зал
+# Зал
 class Hall(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name of the hall")
     
     def __str__(self):
         return self.name
 
-# 4. Місце в залі
+# Місце в залі
 class Seat(models.Model):
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE, related_name='seats')
     row = models.PositiveIntegerField(verbose_name="Row")
@@ -46,7 +46,7 @@ class Seat(models.Model):
     def __str__(self):
         return f"{self.hall.name} - Ряд {self.row}, Місце {self.number}"
 
-# 5. Сеанс
+# Сеанс
 class Session(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='sessions')
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE, related_name='sessions')
