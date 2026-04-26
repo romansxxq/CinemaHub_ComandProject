@@ -10,7 +10,7 @@ class MovieAdmin(admin.ModelAdmin):
     list_display = ('title', 'duration', 'imdb_id')
     
     def save_model(self, request, obj, form, change):
-        api_key = "fe50d514" # Не забудьте вставити ваш ключ!
+        api_key = "fe50d514"
         data = None
         
         # ВАРІАНТ 1: Адмін ввів IMDb ID (точний пошук)
