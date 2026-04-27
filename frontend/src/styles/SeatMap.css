@@ -1,0 +1,191 @@
+/* Seat Map Styles */
+.seat-map {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.screen {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 40px;
+  color: var(--secondary-color);
+  padding: 15px;
+  background: linear-gradient(90deg, #f0f0f0, #e0e0e0, #f0f0f0);
+  border-radius: 8px;
+}
+
+.seats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.row-label {
+  font-weight: 600;
+  color: var(--secondary-color);
+  min-width: 50px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.row-seats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.seat {
+  width: 35px;
+  height: 35px;
+  border: 2px solid var(--border-color);
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+.seat:hover:not(:disabled) {
+  transform: scale(1.15);
+  border-color: var(--primary-color);
+}
+
+.seat.standard {
+  background: var(--standard-color);
+  color: white;
+  border-color: var(--standard-color);
+}
+
+.seat.vip {
+  background: var(--vip-color);
+  color: white;
+  border-color: var(--vip-color);
+}
+
+.seat.booked {
+  background: #cccccc;
+  color: #999;
+  border-color: #999;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.seat.selected {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+  transform: scale(1.2);
+}
+
+.seat:disabled {
+  cursor: not-allowed;
+}
+
+.seat:disabled:hover {
+  transform: none;
+}
+
+.seat-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--secondary-color);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  white-space: nowrap;
+  margin-bottom: 8px;
+  z-index: 10;
+}
+
+.seat-legend {
+  display: flex;
+  gap: 25px;
+  justify-content: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend-seat {
+  width: 25px;
+  height: 25px;
+  border-radius: 4px;
+  border: 2px solid var(--border-color);
+}
+
+.legend-seat.available {
+  background: var(--standard-color);
+  border-color: var(--standard-color);
+}
+
+.legend-seat.vip {
+  background: var(--vip-color);
+  border-color: var(--vip-color);
+}
+
+.legend-seat.booked {
+  background: #cccccc;
+  border-color: #999;
+}
+
+.legend-seat.selected {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.empty-seats {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-light);
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .seat-map {
+    padding: 15px;
+  }
+
+  .seat {
+    width: 30px;
+    height: 30px;
+  }
+
+  .row-seats {
+    gap: 5px;
+  }
+
+  .seat-legend {
+    gap: 15px;
+  }
+
+  .legend-seat {
+    width: 20px;
+    height: 20px;
+  }
+}
