@@ -29,10 +29,33 @@ class Movie(models.Model):
 # Зал
 class Hall(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name of the hall")
-    
+    rows = models.PositiveIntegerField(default=10, verbose_name="Count of rows")
+    seats_per_row = models.PositiveIntegerField(default=15, verbose_name="Seats per row")
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        # Перевіряємо, чи це створення НОВОГО залу (якщо pk == None)
+        is_new = self.pk is None 
+        
+        # Спочатку зберігаємо сам зал, щоб він отримав свій id (pk)
+        super().save(*args, **kwargs)
+
+        # Якщо зал щойно створено, генеруємо місця
+        if is_new:
+            seats_to_create = []
+            
+            for row in range(1, self.rows + 1):
+                for number in range(1, self.seats_per_row + 1):
+                    # Фішка: можемо зробити останній ряд автоматично VIP
+                    is_vip = (row == self.rows)
+                    
+                    seats_to_create.append(
+                        Seat(hall=self, row=row, number=number, is_vip=is_vip)
+                    )
+            
+            # bulk_create зберігає всі місця ОДНИМ запитом до БД (дуже швидко!)
+            Seat.objects.bulk_create(seats_to_create)
 # Місце в залі
 class Seat(models.Model):
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE, related_name='seats')

@@ -47,7 +47,38 @@ class MovieAdmin(admin.ModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-admin.site.register(Hall)
-admin.site.register(Seat)
-admin.site.register(Session)
-admin.site.register(Booking)
+@admin.register(Hall)
+class HallAdmin(admin.ModelAdmin):
+    list_display = ('name', 'rows', 'seats_per_row')
+
+# Кастомні дії для швидкого керування VIP статусом
+@admin.action(description="Зробити обрані місця VIP (Золотими)")
+def make_vip(modeladmin, request, queryset):
+    # Оновлює всі обрані записи одним швидким запитом до БД
+    queryset.update(is_vip=True)
+
+@admin.action(description="Зняти статус VIP з обраних місць")
+def remove_vip(modeladmin, request, queryset):
+    queryset.update(is_vip=False)
+
+@admin.register(Seat)
+class SeatAdmin(admin.ModelAdmin):
+    list_display = ('hall', 'row', 'number', 'is_vip')
+    list_filter = ('hall', 'is_vip') # Фільтри збоку екрана
+    list_editable = ('is_vip',)      # Дозволяє клікати галочки прямо у списку
+    ordering = ('hall', 'row', 'number')
+    actions = [make_vip, remove_vip] # Додаємо наші кастомні кнопки в меню "Дії"
+
+
+# --- БАЗОВА АДМІНКА ДЛЯ СЕАНСІВ ТА БРОНЮВАНЬ ---
+# (Щоб теж виглядало красиво, а не просто як `Object (1)`)
+
+@admin.register(Session)
+class SessionAdmin(admin.ModelAdmin):
+    list_display = ('movie', 'hall', 'start_time', 'base_price')
+    list_filter = ('movie', 'hall', 'start_time')
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'session', 'status', 'created_at')
+    list_filter = ('status',)
