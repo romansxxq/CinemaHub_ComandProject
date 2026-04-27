@@ -13,6 +13,20 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
+
+class Genre(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class HallType(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
 # Фільм
 class Movie(models.Model):
     title = models.CharField(max_length=255, verbose_name="Name film", blank=True)
@@ -20,6 +34,10 @@ class Movie(models.Model):
     poster_url = models.URLField(verbose_name="Poster URL", blank=True, null=True)
     trailer_url = models.URLField(verbose_name="Trailer URL", blank=True, null=True)
     duration = models.PositiveIntegerField(verbose_name="Duration (minutes)", blank=True)
+    genres = models.ManyToManyField(Genre, related_name='movies', blank=True)
+    is_now_showing = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    release_date = models.DateField(null=True, blank=True)
     
     imdb_id = models.CharField(max_length=20, unique=True, null=True, blank=True, verbose_name="IMDb ID")
     
@@ -73,8 +91,11 @@ class Seat(models.Model):
 class Session(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='sessions')
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE, related_name='sessions')
+    hall_type = models.ForeignKey(HallType, on_delete=models.CASCADE, null=True, blank=True, related_name='sessions')
     start_time = models.DateTimeField(verbose_name="Час початку")
     base_price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Базова ціна")
+    base_price_standard = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    base_price_vip = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
 
     @property
     def end_time(self):
