@@ -53,7 +53,7 @@ class MovieListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'poster_url', 'duration', 'rating', 'genres', 'is_now_showing')
+        fields = ('id', 'title', 'poster_url', 'duration', 'genres', 'is_now_showing')
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):
@@ -73,7 +73,7 @@ class HallTypeSerializer(serializers.ModelSerializer):
 class SeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
-        fields = ('id', 'row', 'number', 'seat_type')
+        fields = ('id', 'row', 'number', 'is_vip')
 
 
 class HallSerializer(serializers.ModelSerializer):
@@ -132,16 +132,6 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        
-        # Calculate price based on seat type
-        seat = validated_data['seat']
-        session = validated_data['session']
-        
-        if seat.seat_type == 'vip':
-            validated_data['price'] = session.base_price_vip
-        else:
-            validated_data['price'] = session.base_price_standard
-        
         return super().create(validated_data)
 
 
@@ -153,7 +143,7 @@ class BookingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ('id', 'movie_title', 'session_time', 'hall_name', 'seat_info', 'price', 'status', 'created_at')
+        fields = ('id', 'movie_title', 'session_time', 'hall_name', 'seat_info', 'status', 'created_at')
 
     def get_seat_info(self, obj):
         return f"Ряд {obj.seat.row}, Місце {obj.seat.number}"
