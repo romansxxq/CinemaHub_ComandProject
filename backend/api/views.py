@@ -163,14 +163,15 @@ class BookingViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         
         try:
-            self.perform_create(serializer)
+            booking = serializer.save()
         except Exception as e:
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        detail_serializer = BookingDetailSerializer(booking, context={'request': request})
+        return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'])
     def active(self, request):

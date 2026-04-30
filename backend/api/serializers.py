@@ -103,6 +103,8 @@ class SessionSerializer(serializers.ModelSerializer):
 
 
 class SessionDetailSerializer(serializers.ModelSerializer):
+    movie_title = serializers.CharField(source='movie.title', read_only=True)
+    hall_name = serializers.CharField(source='hall.name', read_only=True)
     movie = MovieDetailSerializer(read_only=True)
     hall = HallSerializer(read_only=True)
     hall_type = HallTypeSerializer(read_only=True)
@@ -136,6 +138,7 @@ class BookingCreateSerializer(serializers.ModelSerializer):
 
 
 class BookingListSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     movie_title = serializers.CharField(source='session.movie.title', read_only=True)
     session_time = serializers.CharField(source='session.start_time', read_only=True)
     hall_name = serializers.CharField(source='session.hall.name', read_only=True)
@@ -143,7 +146,7 @@ class BookingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ('id', 'movie_title', 'session_time', 'hall_name', 'seat_info', 'status', 'created_at')
+        fields = ('id', 'user', 'movie_title', 'session_time', 'hall_name', 'seat_info', 'status', 'created_at')
 
     def get_seat_info(self, obj):
         return f"Ряд {obj.seat.row}, Місце {obj.seat.number}"
