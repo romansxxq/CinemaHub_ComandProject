@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sessionService, bookingService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { SkeletonSeatMap } from '../components/Skeleton';
+import { ErrorState } from '../components/EmptyState';
 import SeatMap from '../components/SeatMap';
 import '../styles/SeatSelectionPage.css';
 
@@ -9,6 +12,7 @@ function SeatSelectionPage() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const toast = useToast();
 
   const [session, setSession] = useState(null);
   const [seats, setSeats] = useState([]);
@@ -29,13 +33,15 @@ function SeatSelectionPage() {
   const loadSessionDetails = async () => {
     try {
       setLoading(true);
+      setError(null);
       const sessionRes = await sessionService.getById(sessionId);
       setSession(sessionRes.data);
       setSeats(sessionRes.data.hall.seats);
       setBookedSeats(sessionRes.data.booked_seats);
-      setError(null);
     } catch (err) {
-      setError('Failed to load session details');
+      const message = err.response?.data?.detail || 'Не вдалося завантажити деталі сеансу';
+      setError(message);
+      toast.error(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -68,7 +74,7 @@ function SeatSelectionPage() {
 
   const handleBooking = async () => {
     if (Object.keys(selectedSeats).length === 0) {
-      alert('Please select at least one seat');
+      toast.warning('Будь ласка, виберіть мінімум одне місце');
       return;
     }
 
@@ -86,20 +92,21 @@ function SeatSelectionPage() {
         bookings.push(bookingRes.data);
       }
 
-      alert('Booking successful! Redirecting to payment...');
-      // Redirect to payment or booking confirmation
+      toast.success('Бронювання успішне!');
       navigate('/bookings');
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create booking');
+      const message = err.response?.data?.detail || 'Не вдалося створити бронювання';
+      toast.error(message);
+      setError(message);
       console.error(err);
     } finally {
       setProcessingBooking(false);
     }
   };
 
-  if (loading) return <div className="loading">Loading seat map...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!session) return <div className="error">Session not found</div>;
+  if (loading) return <SkeletonSeatMap />;
+  if (error) return <ErrorState message={error} />;
+  if (!session) return <ErrorState message="Сеанс не знайдено" />;
 
   const selectedCount = Object.keys(selectedSeats).length;
   const totalPrice = calculateTotal();

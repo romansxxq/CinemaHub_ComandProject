@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import MovieCard from '../components/MovieCard';
+import { SkeletonGrid } from '../components/Skeleton';
+import { EmptyMovies } from '../components/EmptyState';
 import { movieService, genreService } from '../services/api';
+import { useToast } from '../context/ToastContext';
 import '../styles/HomePage.css';
 
 function HomePage() {
@@ -12,6 +15,7 @@ function HomePage() {
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [showNowOnly, setShowNowOnly] = useState(false);
   const [searchParams] = useSearchParams();
+  const toast = useToast();
 
   const searchQuery = searchParams.get('search');
 
@@ -23,6 +27,7 @@ function HomePage() {
   const loadMovies = async () => {
     try {
       setLoading(true);
+      setError(null);
       let response;
 
       if (selectedGenre) {
@@ -36,9 +41,10 @@ function HomePage() {
       }
 
       setMovies(response.data.results || response.data);
-      setError(null);
     } catch (err) {
-      setError('Failed to load movies');
+      const message = err.response?.data?.detail || 'Не вдалося завантажити фільми';
+      setError(message);
+      toast.error(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -102,16 +108,15 @@ function HomePage() {
       </div>
 
       <div className="movies-section">
-        {loading && <div className="loading">Loading movies...</div>}
-        {error && <div className="error">{error}</div>}
-        
-        {!loading && movies.length === 0 && (
-          <div className="no-movies">No movies found. Try different filters.</div>
-        )}
-
-        {!loading && movies.length > 0 && (
+        {loading ? (
+          <SkeletonGrid />
+        ) : error ? (
+          <div className="error-message">⚠️ {error}</div>
+        ) : movies.length === 0 ? (
+          <EmptyMovies />
+        ) : (
           <>
-            <h2>{showNowOnly ? 'Now Showing' : selectedGenre ? 'Movies by Genre' : searchQuery ? 'Search Results' : 'All Movies'}</h2>
+            <h2>{showNowOnly ? 'Зараз у прокаті' : selectedGenre ? 'Фільми за жанром' : searchQuery ? 'Результати пошуку' : 'Всі фільми'}</h2>
             <div className="movies-grid">
               {movies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />

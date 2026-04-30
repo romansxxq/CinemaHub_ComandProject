@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import '../styles/AuthPages.css';
 
 function LoginPage() {
   const navigate = useNavigate();
   const { login, error } = useAuth();
+  const toast = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +19,9 @@ function LoginPage() {
     setLocalError('');
 
     if (!email || !password) {
-      setLocalError('Please fill in all fields');
+      const msg = 'Будь ласка, заповніть всі поля';
+      setLocalError(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -26,9 +30,12 @@ function LoginPage() {
     setLoading(false);
 
     if (success) {
+      toast.success('Ви успішно авторизовані!');
       navigate('/');
     } else {
-      setLocalError(error || 'Login failed. Please check your credentials.');
+      const msg = error || 'Помилка входу. Перевірте ваші облікові дані.';
+      setLocalError(msg);
+      toast.error(msg);
     }
   };
 

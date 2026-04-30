@@ -122,6 +122,16 @@
   font-size: 18px;
 }
 
+.error-message {
+  background: #ffe5e5;
+  color: var(--danger-color);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  margin: 40px 0;
+}
+
 @media (max-width: 1024px) {
   .hero-banner {
     padding: 40px 20px;

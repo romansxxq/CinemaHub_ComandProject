@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { bookingService } from '../services/api';
+import { useToast } from '../context/ToastContext';
+import { EmptyBookings } from '../components/EmptyState';
 import '../styles/BookingHistoryPage.css';
 
 function BookingHistoryPage() {
+  const toast = useToast();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,6 +18,7 @@ function BookingHistoryPage() {
   const loadBookings = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await bookingService.getHistory();
       
       let filteredBookings = response.data;
@@ -23,9 +27,10 @@ function BookingHistoryPage() {
       }
       
       setBookings(filteredBookings);
-      setError(null);
     } catch (err) {
-      setError('Failed to load booking history');
+      const message = err.response?.data?.detail || 'Не вдалося завантажити історію бронювань';
+      setError(message);
+      toast.error(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -33,16 +38,17 @@ function BookingHistoryPage() {
   };
 
   const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) {
+    if (!window.confirm('Ви впевнені, що хочете скасувати це бронювання?')) {
       return;
     }
 
     try {
       await bookingService.cancel(bookingId);
+      toast.success('Бронювання скасовано');
       loadBookings();
-      alert('Booking cancelled successfully');
     } catch (err) {
-      alert('Failed to cancel booking');
+      const message = err.response?.data?.detail || 'Не вдалося скасувати бронювання';
+      toast.error(message);
       console.error(err);
     }
   };
@@ -63,11 +69,11 @@ function BookingHistoryPage() {
   const getStatusLabel = (status) => {
     switch (status) {
       case 'paid':
-        return '✓ Paid';
+        return '✓ Оплачено';
       case 'pending':
-        return '⏳ Pending Payment';
+        return '⏳ Очікує оплати';
       case 'cancelled':
-        return '✗ Cancelled';
+        return '✗ Скасовано';
       default:
         return status;
     }
@@ -77,43 +83,41 @@ function BookingHistoryPage() {
     <div className="booking-history-page">
       <div className="history-container">
         <div className="history-header">
-          <h1>📋 Booking History</h1>
+          <h1>📋 Історія бронювань</h1>
 
           <div className="filter-buttons">
             <button
               className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
               onClick={() => setFilterStatus('all')}
             >
-              All Bookings
+              Всі бронювання
             </button>
             <button
               className={`filter-btn ${filterStatus === 'paid' ? 'active' : ''}`}
               onClick={() => setFilterStatus('paid')}
             >
-              Paid
+              Оплачені
             </button>
             <button
               className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
               onClick={() => setFilterStatus('pending')}
             >
-              Pending
+              Очікує
             </button>
             <button
               className={`filter-btn ${filterStatus === 'cancelled' ? 'active' : ''}`}
               onClick={() => setFilterStatus('cancelled')}
             >
-              Cancelled
+              Скасовані
             </button>
           </div>
         </div>
 
-        {loading && <div className="loading">Loading bookings...</div>}
+        {loading && <div className="loading">Загрузка бронювань...</div>}
         {error && <div className="error">{error}</div>}
 
         {!loading && bookings.length === 0 && (
-          <div className="no-bookings">
-            No bookings found for the selected filter.
-          </div>
+          <EmptyBookings />
         )}
 
         {!loading && bookings.length > 0 && (
@@ -121,13 +125,13 @@ function BookingHistoryPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Movie</th>
-                  <th>Date & Time</th>
-                  <th>Hall</th>
-                  <th>Seat</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>Фільм</th>
+                  <th>Дата та час</th>
+                  <th>Зал</th>
+                  <th>Місце</th>
+                  <th>Ціна</th>
+                  <th>Статус</th>
+                  <th>Дії</th>
                 </tr>
               </thead>
               <tbody>
@@ -137,9 +141,9 @@ function BookingHistoryPage() {
                       <strong>{booking.movie_title}</strong>
                     </td>
                     <td className="datetime">
-                      {new Date(booking.session_time).toLocaleDateString()}
+                      {new Date(booking.session_time).toLocaleDateString('uk-UA')}
                       <br />
-                      {new Date(booking.session_time).toLocaleTimeString([], {
+                      {new Date(booking.session_time).toLocaleTimeString('uk-UA', {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: false,
@@ -159,11 +163,11 @@ function BookingHistoryPage() {
                           className="cancel-btn"
                           onClick={() => handleCancelBooking(booking.id)}
                         >
-                          Cancel
+                          Скасувати
                         </button>
                       )}
                       {booking.status !== 'cancelled' && (
-                        <span className="ticket-id" title="Ticket ID">
+                        <span className="ticket-id" title="ID білету">
                           {booking.id}
                         </span>
                       )}

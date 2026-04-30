@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { movieService } from '../services/api';
+import { SkeletonMovieDetail } from '../components/Skeleton';
+import { ErrorState, EmptySessions } from '../components/EmptyState';
+import { useToast } from '../context/ToastContext';
 import '../styles/MovieDetailPage.css';
 
 function MovieDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [movie, setMovie] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,23 +23,23 @@ function MovieDetailPage() {
   const loadMovieAndSessions = async () => {
     try {
       setLoading(true);
+      setError(null);
       const movieRes = await movieService.getById(id);
       setMovie(movieRes.data);
 
       const sessionsRes = await movieService.getSessions(id);
       const sessionsList = sessionsRes.data.results || sessionsRes.data;
       
-      // Group sessions by date
       setSessions(sessionsList);
       
       if (sessionsList.length > 0) {
         const firstDate = new Date(sessionsList[0].start_time).toDateString();
         setSelectedDate(firstDate);
       }
-
-      setError(null);
     } catch (err) {
-      setError('Failed to load movie details');
+      const message = err.response?.data?.detail || 'Не вдалося завантажити деталі фільму';
+      setError(message);
+      toast.error(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -71,9 +75,9 @@ function MovieDetailPage() {
     navigate(`/seat-selection/${sessionId}`);
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!movie) return <div className="error">Movie not found</div>;
+  if (loading) return <SkeletonMovieDetail />;
+  if (error) return <ErrorState message={error} />;
+  if (!movie) return <ErrorState message="Фільм не знайдено" />;
 
   const sessionsByDate = getSessionsByDate();
   const uniqueDates = getUniqueDates();
@@ -154,10 +158,10 @@ function MovieDetailPage() {
         )}
 
         <div className="sessions-section">
-          <h2>Select a Session</h2>
+          <h2>Виберіть сеанс</h2>
 
           <div className="date-selector">
-            <h3>Choose Date:</h3>
+            <h3>Виберіть дату:</h3>
             <div className="dates-list">
               {uniqueDates.map((date) => (
                 <button
@@ -165,7 +169,7 @@ function MovieDetailPage() {
                   className={`date-btn ${selectedDate === date ? 'active' : ''}`}
                   onClick={() => setSelectedDate(date)}
                 >
-                  {new Date(date).toLocaleDateString('en-US', {
+                  {new Date(date).toLocaleDateString('uk-UA', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
@@ -177,7 +181,7 @@ function MovieDetailPage() {
 
           {sessionsByDate.length > 0 ? (
             <div className="sessions-list">
-              <h3>Available Sessions:</h3>
+              <h3>Доступні сеанси:</h3>
               <div className="sessions-grid">
                 {sessionsByDate.map((session) => (
                   <div key={session.id} className="session-card">
@@ -188,10 +192,10 @@ function MovieDetailPage() {
                       {session.hall_type_name}
                     </div>
                     <div className="session-hall">
-                      Hall: {session.hall_name}
+                      Зал: {session.hall_name}
                     </div>
                     <div className="session-price">
-                      <span className="price-label">Standard:</span>
+                      <span className="price-label">Звичайне:</span>
                       <span className="price-value">₴{session.base_price_standard}</span>
                     </div>
                     <div className="session-price">
@@ -202,16 +206,14 @@ function MovieDetailPage() {
                       className="book-btn"
                       onClick={() => handleSessionClick(session.id)}
                     >
-                      Book Seats →
+                      Забронювати місця →
                     </button>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="no-sessions">
-              No sessions available for this date.
-            </div>
+            <EmptySessions />
           )}
         </div>
       </div>

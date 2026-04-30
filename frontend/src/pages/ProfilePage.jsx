@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { bookingService } from '../services/api';
+import { EmptyBookings } from '../components/EmptyState';
 import '../styles/ProfilePage.css';
 
 function ProfilePage() {
   const { user, loadUser } = useAuth();
+  const toast = useToast();
   const [activeBookings, setActiveBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,11 +19,13 @@ function ProfilePage() {
   const loadActiveBookings = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await bookingService.getActive();
       setActiveBookings(response.data);
-      setError(null);
     } catch (err) {
-      setError('Failed to load bookings');
+      const message = err.response?.data?.detail || 'Не вдалося завантажити бронювання';
+      setError(message);
+      toast.error(message);
       console.error(err);
     } finally {
       setLoading(false);
@@ -30,6 +35,7 @@ function ProfilePage() {
   const handleRefresh = async () => {
     await loadUser();
     await loadActiveBookings();
+    toast.success('Дані оновлені');
   };
 
   if (!user) {
@@ -69,13 +75,13 @@ function ProfilePage() {
         </div>
 
         <div className="active-bookings">
-          <h2>🎬 Active Bookings</h2>
+          <h2>🎬 Активні бронювання</h2>
           
-          {loading && <div className="loading">Loading...</div>}
+          {loading && <div className="loading">Загрузка...</div>}
           {error && <div className="error">{error}</div>}
           
           {!loading && activeBookings.length === 0 && (
-            <p className="no-bookings">You have no active bookings.</p>
+            <EmptyBookings />
           )}
 
           {!loading && activeBookings.length > 0 && (
@@ -86,12 +92,12 @@ function ProfilePage() {
                     <div className="booking-title">
                       <h3>{booking.movie_title}</h3>
                       <span className={`status-badge ${booking.status}`}>
-                        {booking.status === 'paid' ? '✓ Paid' : '⏳ Pending'}
+                        {booking.status === 'paid' ? '✓ Оплачено' : '⏳ Очікує'}
                       </span>
                     </div>
                     <p className="booking-datetime">
-                      📅 {new Date(booking.session_time).toLocaleDateString()}
-                      &nbsp;⏰ {new Date(booking.session_time).toLocaleTimeString([], { 
+                      📅 {new Date(booking.session_time).toLocaleDateString('uk-UA')}
+                      &nbsp;⏰ {new Date(booking.session_time).toLocaleTimeString('uk-UA', { 
                         hour: '2-digit', 
                         minute: '2-digit',
                         hour12: false 
@@ -106,7 +112,7 @@ function ProfilePage() {
                   </div>
                   <div className="booking-actions">
                     <div className="ticket-id">
-                      Ticket ID: {booking.id}
+                      Білет ID: {booking.id}
                     </div>
                   </div>
                 </div>

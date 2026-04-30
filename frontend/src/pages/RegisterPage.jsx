@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import '../styles/AuthPages.css';
 
 function RegisterPage() {
   const navigate = useNavigate();
   const { register, error } = useAuth();
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -32,17 +34,23 @@ function RegisterPage() {
 
     // Validation
     if (!formData.email || !formData.username || !formData.password || !formData.passwordConfirm) {
-      setLocalError('Please fill in all required fields');
+      const msg = 'Будь ласка, заповніть всі необхідні поля';
+      setLocalError(msg);
+      toast.warning(msg);
       return;
     }
 
     if (formData.password.length < 8) {
-      setLocalError('Password must be at least 8 characters');
+      const msg = 'Пароль повинен містити мінімум 8 символів';
+      setLocalError(msg);
+      toast.warning(msg);
       return;
     }
 
     if (formData.password !== formData.passwordConfirm) {
-      setLocalError('Passwords do not match');
+      const msg = 'Паролі не збігаються';
+      setLocalError(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -58,10 +66,12 @@ function RegisterPage() {
     setLoading(false);
 
     if (success) {
-      alert('Registration successful! Please log in.');
+      toast.success('Реєстрація успішна! Тепер увійдіть до свого облікового запису.');
       navigate('/login');
     } else {
-      setLocalError(error || 'Registration failed. Please try again.');
+      const msg = error || 'Помилка реєстрації. Спробуйте ще раз.';
+      setLocalError(msg);
+      toast.error(msg);
     }
   };
 
