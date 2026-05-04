@@ -3,30 +3,9 @@ Initial data setup script for CinemaHub
 Run with: python manage.py shell < setup_data.py
 """
 
-from api.models import Genre, Movie, Hall, HallType, Seat, Session
+from api.models import Movie, Hall, HallType, Seat, Session
 from django.utils import timezone
 from datetime import datetime, timedelta
-
-# Create Genres
-print("Creating genres...")
-genres_data = [
-    'Action',
-    'Comedy',
-    'Drama',
-    'Horror',
-    'Sci-Fi',
-    'Animation',
-    'Adventure',
-    'Romance',
-    'Thriller',
-    'Fantasy'
-]
-genres = {}
-for genre_name in genres_data:
-    genre, created = Genre.objects.get_or_create(name=genre_name)
-    genres[genre_name] = genre
-    if created:
-        print(f"  ✓ Created genre: {genre_name}")
 
 # Create HallTypes
 print("\nCreating hall types...")
@@ -124,15 +103,14 @@ movies_data = [
 movies = {}
 for movie_data in movies_data:
     genres_list = movie_data.pop('genres')
+
+    # Genres are stored as plain text on Movie
+    movie_data['genres_text'] = ', '.join(genres_list)
     movie, created = Movie.objects.get_or_create(
         title=movie_data['title'],
         defaults=movie_data
     )
     movies[movie_data['title']] = movie
-    
-    # Add genres
-    for genre_name in genres_list:
-        movie.genres.add(genres[genre_name])
     
     if created:
         print(f"  ✓ Created movie: {movie_data['title']}")

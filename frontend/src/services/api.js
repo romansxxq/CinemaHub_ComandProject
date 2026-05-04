@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-const AUTH_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/auth';
+const AUTH_URL = import.meta.env.VITE_AUTH_URL || `${API_BASE_URL}/auth`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -59,14 +59,7 @@ export const movieService = {
   getAll: (params) => api.get('/movies/', { params }),
   getById: (id) => api.get(`/movies/${id}/`),
   getNowShowing: () => api.get('/movies/now_showing/'),
-  getByGenre: (genreId) => api.get('/movies/by_genre/', { params: { genre_id: genreId } }),
   getSessions: (movieId) => api.get(`/movies/${movieId}/sessions/`),
-};
-
-// Genre services
-export const genreService = {
-  getAll: () => api.get('/genres/'),
-  search: (query) => api.get('/genres/', { params: { search: query } }),
 };
 
 // Session services

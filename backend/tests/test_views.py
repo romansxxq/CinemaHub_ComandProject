@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from api.models import Movie, Genre, Booking
+from api.models import Movie, Booking
 from datetime import datetime, timedelta
 
 User = get_user_model()
@@ -76,31 +76,6 @@ class TestUserProfileView:
 
 
 @pytest.mark.django_db
-class TestGenreViewSet:
-    """Test Genre API endpoints"""
-    
-    def test_list_genres(self, api_client, genre):
-        """Test listing genres"""
-        response = api_client.get('/api/genres/')
-        assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) >= 1
-        assert any(g['name'] == 'Action' for g in response.data)
-    
-    def test_genre_search(self, api_client, genre):
-        """Test searching genres"""
-        response = api_client.get('/api/genres/?search=Action')
-        assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['name'] == 'Action'
-    
-    def test_retrieve_genre(self, api_client, genre):
-        """Test retrieving single genre"""
-        response = api_client.get(f'/api/genres/{genre.id}/')
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == 'Action'
-
-
-@pytest.mark.django_db
 class TestMovieViewSet:
     """Test Movie API endpoints"""
     
@@ -113,13 +88,6 @@ class TestMovieViewSet:
     def test_list_movies_now_showing(self, api_client, movie, another_movie):
         """Test listing only now showing movies"""
         response = api_client.get('/api/movies/now_showing/')
-        assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['title'] == 'Test Movie'
-    
-    def test_movie_by_genre_filter(self, api_client, movie, another_movie, genre):
-        """Test filtering movies by genre"""
-        response = api_client.get(f'/api/movies/by_genre/?genre_id={genre.id}')
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
         assert response.data[0]['title'] == 'Test Movie'

@@ -14,13 +14,6 @@ class User(AbstractUser):
         return self.email
 
 
-class Genre(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
 class HallType(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -34,7 +27,8 @@ class Movie(models.Model):
     poster_url = models.URLField(verbose_name="Poster URL", blank=True, null=True)
     trailer_url = models.URLField(verbose_name="Trailer URL", blank=True, null=True)
     duration = models.PositiveIntegerField(verbose_name="Duration (minutes)", blank=True)
-    genres = models.ManyToManyField(Genre, related_name='movies', blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    genres_text = models.TextField(blank=True, default='')
     is_now_showing = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     release_date = models.DateField(null=True, blank=True)
@@ -72,7 +66,6 @@ class Hall(models.Model):
                         Seat(hall=self, row=row, number=number, is_vip=is_vip)
                     )
             
-            # bulk_create зберігає всі місця ОДНИМ запитом до БД (дуже швидко!)
             Seat.objects.bulk_create(seats_to_create)
 # Місце в залі
 class Seat(models.Model):
@@ -80,6 +73,10 @@ class Seat(models.Model):
     row = models.PositiveIntegerField(verbose_name="Row")
     number = models.PositiveIntegerField(verbose_name="Seat Number")
     is_vip = models.BooleanField(default=False, verbose_name="VIP Seat")
+
+    @property
+    def seat_type(self):
+        return 'vip' if self.is_vip else 'standard'
 
     class Meta:
         unique_together = ('hall', 'row', 'number')
@@ -119,6 +116,7 @@ class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='bookings')
     seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Час створення")

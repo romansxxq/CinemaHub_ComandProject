@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
-from .models import Movie, Genre, Hall, Seat, Session, Booking, HallType
+from .models import Movie, Hall, Seat, Session, Booking, HallType
 
 User = get_user_model()
 
@@ -42,26 +42,33 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
-class GenreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Genre
-        fields = ('id', 'name')
-
-
 class MovieListSerializer(serializers.ModelSerializer):
-    genres = GenreSerializer(many=True, read_only=True)
+    genres = serializers.CharField(source='genres_text', read_only=True)
 
     class Meta:
         model = Movie
-        fields = ('id', 'title', 'poster_url', 'duration', 'genres', 'is_now_showing')
+        fields = ('id', 'title', 'poster_url', 'duration', 'rating', 'genres', 'is_now_showing')
 
 
 class MovieDetailSerializer(serializers.ModelSerializer):
-    genres = GenreSerializer(many=True, read_only=True)
+    genres = serializers.CharField(source='genres_text', read_only=True)
 
     class Meta:
         model = Movie
-        fields = '__all__'
+        fields = (
+            'id',
+            'title',
+            'description',
+            'poster_url',
+            'trailer_url',
+            'duration',
+            'rating',
+            'genres',
+            'is_now_showing',
+            'created_at',
+            'release_date',
+            'imdb_id',
+        )
 
 
 class HallTypeSerializer(serializers.ModelSerializer):
@@ -71,9 +78,11 @@ class HallTypeSerializer(serializers.ModelSerializer):
 
 
 class SeatSerializer(serializers.ModelSerializer):
+    seat_type = serializers.CharField(read_only=True)
+
     class Meta:
         model = Seat
-        fields = ('id', 'row', 'number', 'is_vip')
+        fields = ('id', 'row', 'number', 'is_vip', 'seat_type')
 
 
 class HallSerializer(serializers.ModelSerializer):

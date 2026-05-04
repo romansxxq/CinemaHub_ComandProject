@@ -3,16 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import MovieCard from '../components/MovieCard';
 import { SkeletonGrid } from '../components/Skeleton';
 import { EmptyMovies } from '../components/EmptyState';
-import { movieService, genreService } from '../services/api';
+import { movieService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import '../styles/HomePage.css';
 
 function HomePage() {
   const [movies, setMovies] = useState([]);
-  const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedGenre, setSelectedGenre] = useState(null);
   const [showNowOnly, setShowNowOnly] = useState(false);
   const [searchParams] = useSearchParams();
   const toast = useToast();
@@ -21,8 +19,7 @@ function HomePage() {
 
   useEffect(() => {
     loadMovies();
-    loadGenres();
-  }, [selectedGenre, showNowOnly, searchQuery]);
+  }, [showNowOnly, searchQuery]);
 
   const loadMovies = async () => {
     try {
@@ -30,9 +27,7 @@ function HomePage() {
       setError(null);
       let response;
 
-      if (selectedGenre) {
-        response = await movieService.getByGenre(selectedGenre);
-      } else if (showNowOnly) {
+      if (showNowOnly) {
         response = await movieService.getNowShowing();
       } else if (searchQuery) {
         response = await movieService.getAll({ search: searchQuery });
@@ -51,20 +46,6 @@ function HomePage() {
     }
   };
 
-  const loadGenres = async () => {
-    try {
-      const response = await genreService.getAll();
-      setGenres(response.data.results || response.data);
-    } catch (err) {
-      console.error('Failed to load genres:', err);
-    }
-  };
-
-  const handleGenreSelect = (genreId) => {
-    setSelectedGenre(selectedGenre === genreId ? null : genreId);
-    setShowNowOnly(false);
-  };
-
   return (
     <div className="home-page">
       <div className="hero-banner">
@@ -78,26 +59,10 @@ function HomePage() {
             className={`filter-btn ${showNowOnly ? 'active' : ''}`}
             onClick={() => {
               setShowNowOnly(!showNowOnly);
-              setSelectedGenre(null);
             }}
           >
             📽️ Now Showing
           </button>
-        </div>
-
-        <div className="genres-scroll">
-          <h3>Genres:</h3>
-          <div className="genres-list">
-            {genres.map((genre) => (
-              <button
-                key={genre.id}
-                className={`genre-btn ${selectedGenre === genre.id ? 'active' : ''}`}
-                onClick={() => handleGenreSelect(genre.id)}
-              >
-                {genre.name}
-              </button>
-            ))}
-          </div>
         </div>
 
         {searchQuery && (
@@ -116,7 +81,7 @@ function HomePage() {
           <EmptyMovies />
         ) : (
           <>
-            <h2>{showNowOnly ? 'Зараз у прокаті' : selectedGenre ? 'Фільми за жанром' : searchQuery ? 'Результати пошуку' : 'Всі фільми'}</h2>
+            <h2>{showNowOnly ? 'Зараз у прокаті' : searchQuery ? 'Результати пошуку' : 'Всі фільми'}</h2>
             <div className="movies-grid">
               {movies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie} />

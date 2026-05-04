@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
-from api.models import Movie, Genre, Hall, Session, Booking
+from api.models import Movie, Hall, Session, Booking
 from datetime import datetime, timedelta
 from decimal import Decimal
 from rest_framework import status
@@ -12,7 +12,7 @@ User = get_user_model()
 class TestCinemaBookingFlow:
     """Integration tests for complete cinema booking workflow"""
     
-    def test_complete_booking_workflow(self, authenticated_client, movie, hall, hall_type, genre):
+    def test_complete_booking_workflow(self, authenticated_client, movie, hall, hall_type):
         """Test complete flow from browsing to booking"""
         # 1. User checks now showing movies
         response = authenticated_client.get('/api/movies/now_showing/')
@@ -121,41 +121,6 @@ class TestCinemaBookingFlow:
         # Verify status changed
         booking.refresh_from_db()
         assert booking.status == 'cancelled'
-
-
-@pytest.mark.django_db
-class TestGenreMovieRelationship:
-    """Test relationship between genres and movies"""
-    
-    def test_movie_with_multiple_genres(self, movie, genre, drama_genre):
-        """Test that a movie can have multiple genres"""
-        movie.genres.add(drama_genre)
-        assert movie.genres.count() == 2
-        assert genre in movie.genres.all()
-        assert drama_genre in movie.genres.all()
-    
-    def test_filter_movies_by_genre(self, movie, another_movie, genre, drama_genre):
-        """Test filtering movies by specific genre"""
-        movies_by_genre = Movie.objects.filter(genres=genre)
-        assert movie in movies_by_genre
-        assert another_movie not in movies_by_genre
-    
-    def test_genre_has_multiple_movies(self, genre):
-        """Test that a genre can have multiple movies"""
-        m1 = Movie.objects.create(
-            title='Movie 1',
-            duration=120,
-            is_now_showing=True
-        )
-        m2 = Movie.objects.create(
-            title='Movie 2',
-            duration=150,
-            is_now_showing=True
-        )
-        m1.genres.add(genre)
-        m2.genres.add(genre)
-        
-        assert genre.movies.count() == 2
 
 
 @pytest.mark.django_db

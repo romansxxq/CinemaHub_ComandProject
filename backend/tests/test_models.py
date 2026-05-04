@@ -50,22 +50,6 @@ class TestUserModel:
 
 
 @pytest.mark.django_db
-class TestGenreModel:
-    """Test Genre model functionality"""
-    
-    def test_create_genre(self, genre):
-        """Test creating a genre"""
-        assert genre.name == 'Action'
-        assert str(genre) == 'Action'
-    
-    def test_genre_unique_name(self, genre):
-        """Test that genre names must be unique"""
-        from api.models import Genre
-        with pytest.raises(Exception):
-            Genre.objects.create(name='Action')
-
-
-@pytest.mark.django_db
 class TestMovieModel:
     """Test Movie model functionality"""
     
@@ -75,9 +59,9 @@ class TestMovieModel:
         assert movie.duration == 120
         assert movie.is_now_showing is True
     
-    def test_movie_with_genres(self, movie, genre):
-        """Test movie has correct genres"""
-        assert genre in movie.genres.all()
+    def test_movie_with_genres_text(self, movie):
+        """Test movie has correct genres text"""
+        assert movie.genres_text == 'Action'
     
     def test_movie_string_representation(self, movie):
         """Test movie string representation"""

@@ -7,12 +7,11 @@ from django.utils import timezone
 from django.db.models import Q
 from datetime import timedelta
 
-from .models import Movie, Genre, Hall, Seat, Session, Booking, HallType
+from .models import Movie, Hall, Seat, Session, Booking, HallType
 from .serializers import (
     UserSerializer,
     UserRegisterSerializer,
     CustomTokenObtainPairSerializer,
-    GenreSerializer,
     MovieListSerializer,
     MovieDetailSerializer,
     HallSerializer,
@@ -45,14 +44,6 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class GenreViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (AllowAny,)
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
-
-
 class MovieViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Movie.objects.all()
     permission_classes = (AllowAny,)
@@ -70,17 +61,6 @@ class MovieViewSet(viewsets.ReadOnlyModelViewSet):
     def now_showing(self, request):
         """Get movies currently in theaters"""
         movies = Movie.objects.filter(is_now_showing=True)
-        serializer = self.get_serializer(movies, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'])
-    def by_genre(self, request):
-        """Get movies filtered by genre"""
-        genre_id = request.query_params.get('genre_id')
-        if not genre_id:
-            return Response({'error': 'genre_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        movies = Movie.objects.filter(genres__id=genre_id)
         serializer = self.get_serializer(movies, many=True)
         return Response(serializer.data)
 

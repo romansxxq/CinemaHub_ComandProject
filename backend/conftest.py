@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from datetime import datetime, timedelta
 from decimal import Decimal
-from api.models import Genre, Movie, Hall, Seat, Session, HallType, Booking
+from api.models import Movie, Hall, Seat, Session, HallType, Booking
 
 User = get_user_model()
 
@@ -33,19 +33,7 @@ def authenticated_client(api_client, authenticated_user):
 
 
 @pytest.fixture
-def genre(db):
-    """Create a test genre"""
-    return Genre.objects.create(name='Action')
-
-
-@pytest.fixture
-def drama_genre(db):
-    """Create another test genre"""
-    return Genre.objects.create(name='Drama')
-
-
-@pytest.fixture
-def movie(db, genre):
+def movie(db):
     """Create a test movie"""
     movie = Movie.objects.create(
         title='Test Movie',
@@ -53,15 +41,15 @@ def movie(db, genre):
         poster_url='https://example.com/poster.jpg',
         trailer_url='https://example.com/trailer.mp4',
         duration=120,
+        genres_text='Action',
         is_now_showing=True,
         release_date=datetime.now().date()
     )
-    movie.genres.add(genre)
     return movie
 
 
 @pytest.fixture
-def another_movie(db, drama_genre):
+def another_movie(db):
     """Create another test movie"""
     movie = Movie.objects.create(
         title='Drama Movie',
@@ -69,10 +57,10 @@ def another_movie(db, drama_genre):
         poster_url='https://example.com/poster2.jpg',
         trailer_url='https://example.com/trailer2.mp4',
         duration=150,
+        genres_text='Drama',
         is_now_showing=False,
         release_date=(datetime.now() - timedelta(days=30)).date()
     )
-    movie.genres.add(drama_genre)
     return movie
 
 

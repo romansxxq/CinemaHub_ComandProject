@@ -2,13 +2,12 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     CustomTokenObtainPairView, UserRegisterView, UserProfileView,
-    GenreViewSet, MovieViewSet, HallTypeViewSet, HallViewSet,
+    MovieViewSet, HallTypeViewSet, HallViewSet,
     SessionViewSet, BookingViewSet
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter()
-router.register(r'genres', GenreViewSet, basename='genre')
 router.register(r'movies', MovieViewSet, basename='movie')
 router.register(r'hall-types', HallTypeViewSet, basename='hall-type')
 router.register(r'halls', HallViewSet, basename='hall')

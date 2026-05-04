@@ -3,13 +3,12 @@ from django.contrib.auth import get_user_model
 from api.serializers import (
     UserSerializer,
     UserRegisterSerializer,
-    GenreSerializer,
     MovieListSerializer,
     MovieDetailSerializer,
     SessionSerializer,
     BookingListSerializer
 )
-from api.models import Movie, Genre
+from api.models import Movie
 
 User = get_user_model()
 
@@ -82,25 +81,6 @@ class TestUserRegisterSerializer:
 
 
 @pytest.mark.django_db
-class TestGenreSerializer:
-    """Test Genre serializer"""
-    
-    def test_serialize_genre(self, genre):
-        """Test genre serialization"""
-        serializer = GenreSerializer(genre)
-        assert serializer.data['name'] == 'Action'
-        assert 'id' in serializer.data
-    
-    def test_serialize_multiple_genres(self):
-        """Test serializing multiple genres"""
-        Genre.objects.create(name='Comedy')
-        Genre.objects.create(name='Horror')
-        genres = Genre.objects.all()
-        serializer = GenreSerializer(genres, many=True)
-        assert len(serializer.data) == 2
-
-
-@pytest.mark.django_db
 class TestMovieSerializer:
     """Test Movie serializers"""
     
@@ -112,13 +92,12 @@ class TestMovieSerializer:
         assert data['duration'] == 120
         assert 'id' in data
     
-    def test_movie_list_serializer_includes_genres(self, movie, genre):
+    def test_movie_list_serializer_includes_genres(self, movie):
         """Test that movie list serializer includes genres"""
         serializer = MovieListSerializer(movie)
         data = serializer.data
         assert 'genres' in data
-        assert len(data['genres']) == 1
-        assert data['genres'][0]['name'] == 'Action'
+        assert data['genres'] == 'Action'
     
     def test_movie_detail_serializer(self, movie):
         """Test movie detail serializer"""

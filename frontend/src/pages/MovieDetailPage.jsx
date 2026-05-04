@@ -75,12 +75,59 @@ function MovieDetailPage() {
     navigate(`/seat-selection/${sessionId}`);
   };
 
+  const toTrailerEmbedUrl = (urlString) => {
+    if (!urlString || typeof urlString !== 'string') return null;
+
+    let url;
+    try {
+      url = new URL(urlString);
+    } catch {
+      return null;
+    }
+
+    const host = url.hostname.replace(/^www\./, '').toLowerCase();
+
+    // Already an embed URL (YouTube or Vimeo)
+    if (url.pathname.includes('/embed/')) return url.toString();
+    if (host === 'player.vimeo.com') return url.toString();
+
+    // YouTube variants
+    const isYoutube = host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be';
+    if (!isYoutube) return null;
+
+    let videoId = null;
+
+    if (host === 'youtu.be') {
+      videoId = url.pathname.split('/').filter(Boolean)[0] || null;
+    } else if (url.pathname === '/watch') {
+      videoId = url.searchParams.get('v');
+    } else if (url.pathname.startsWith('/shorts/')) {
+      videoId = url.pathname.split('/').filter(Boolean)[1] || null;
+    } else if (url.pathname.startsWith('/live/')) {
+      videoId = url.pathname.split('/').filter(Boolean)[1] || null;
+    }
+
+    if (!videoId) return null;
+    return `https://www.youtube-nocookie.com/embed/${videoId}`;
+  };
+
   if (loading) return <SkeletonMovieDetail />;
   if (error) return <ErrorState message={error} />;
   if (!movie) return <ErrorState message="Фільм не знайдено" />;
 
   const sessionsByDate = getSessionsByDate();
   const uniqueDates = getUniqueDates();
+  const trailerEmbedUrl = toTrailerEmbedUrl(movie.trailer_url);
+  const genreNames = (() => {
+    if (!movie?.genres) return [];
+    if (Array.isArray(movie.genres)) {
+      return movie.genres.map((g) => g?.name).filter(Boolean);
+    }
+    if (typeof movie.genres === 'string') {
+      return movie.genres.split(',').map((g) => g.trim()).filter(Boolean);
+    }
+    return [];
+  })();
 
   return (
     <div className="movie-detail-page">
@@ -129,11 +176,11 @@ function MovieDetailPage() {
               <p>{movie.description}</p>
             </div>
 
-            {movie.genres && movie.genres.length > 0 && (
+            {genreNames.length > 0 && (
               <div className="genres">
                 <strong>Genres:</strong>
-                {movie.genres.map((genre) => (
-                  <span key={genre.id} className="genre-tag">{genre.name}</span>
+                {genreNames.map((name) => (
+                  <span key={name} className="genre-tag">{name}</span>
                 ))}
               </div>
             )}
@@ -144,15 +191,25 @@ function MovieDetailPage() {
           <div className="trailer-section">
             <h2>Trailer</h2>
             <div className="trailer-container">
-              <iframe
-                width="100%"
-                height="500"
-                src={movie.trailer_url}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title="Movie Trailer"
-              ></iframe>
+              {trailerEmbedUrl ? (
+                <iframe
+                  width="100%"
+                  height="500"
+                  src={trailerEmbedUrl}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  loading="lazy"
+                  title="Movie Trailer"
+                ></iframe>
+              ) : (
+                <div>
+                  <p>Трейлер не можна вбудувати, але його можна відкрити окремо.</p>
+                  <a href={movie.trailer_url} target="_blank" rel="noreferrer">
+                    Відкрити трейлер
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         )}
