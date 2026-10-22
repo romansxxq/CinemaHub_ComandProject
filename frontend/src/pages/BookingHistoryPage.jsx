@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { bookingService } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { EmptyBookings } from '../components/EmptyState';
 import '../styles/BookingHistoryPage.css';
 
 function BookingHistoryPage() {
   const toast = useToast();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -47,8 +49,42 @@ function BookingHistoryPage() {
       toast.success('Бронювання скасовано');
       loadBookings();
     } catch (err) {
-      const message = err.response?.data?.detail || 'Не вдалося скасувати бронювання';
+      const message = err.response?.data?.error
+        || err.response?.data?.detail
+        || 'Не вдалося скасувати бронювання';
       toast.error(message);
+      console.error(err);
+    }
+  };
+
+  const handleDownloadTicket = async (bookingId) => {
+    try {
+      const response = await bookingService.downloadTicketReport(bookingId);
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ticket-${bookingId}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('Електронний квиток завантажено');
+    } catch (err) {
+      toast.error('Не вдалося сформувати електронний квиток');
+      console.error(err);
+    }
+  };
+
+  const handleDownloadFinancialReport = async () => {
+    try {
+      const response = await bookingService.downloadFinancialReport({});
+      const url = URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'financial-analytics.xlsx';
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('Фінансовий звіт завантажено');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Не вдалося сформувати фінансовий звіт');
       console.error(err);
     }
   };
@@ -71,7 +107,7 @@ function BookingHistoryPage() {
       case 'paid':
         return '✓ Оплачено';
       case 'pending':
-        return '⏳ Очікує оплати';
+        return '⏳ Заброньовано';
       case 'cancelled':
         return '✗ Скасовано';
       default:
@@ -102,7 +138,7 @@ function BookingHistoryPage() {
               className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
               onClick={() => setFilterStatus('pending')}
             >
-              Очікує
+              Заброньовані
             </button>
             <button
               className={`filter-btn ${filterStatus === 'cancelled' ? 'active' : ''}`}
@@ -110,6 +146,11 @@ function BookingHistoryPage() {
             >
               Скасовані
             </button>
+            {user?.is_staff && (
+              <button className="report-btn financial-report-btn" onClick={handleDownloadFinancialReport}>
+                Фінансовий звіт
+              </button>
+            )}
           </div>
         </div>
 
@@ -151,7 +192,11 @@ function BookingHistoryPage() {
                     </td>
                     <td>{booking.hall_name}</td>
                     <td>{booking.seat_info}</td>
-                    <td className="price">₴{parseFloat(booking.price).toFixed(2)}</td>
+                    <td className="price">
+                      {Number.isFinite(Number(booking.price))
+                        ? `₴${Number(booking.price).toFixed(2)}`
+                        : 'Ціну не вказано'}
+                    </td>
                     <td>
                       <span className={`status-badge ${getStatusColor(booking.status)}`}>
                         {getStatusLabel(booking.status)}
@@ -167,9 +212,15 @@ function BookingHistoryPage() {
                         </button>
                       )}
                       {booking.status !== 'cancelled' && (
-                        <span className="ticket-id" title="ID білету">
-                          {booking.id}
-                        </span>
+                        <>
+                          <button
+                            className="report-btn"
+                            onClick={() => handleDownloadTicket(booking.id)}
+                          >
+                            PDF-квиток
+                          </button>
+                          <span className="ticket-id" title="ID білету">{booking.id}</span>
+                        </>
                       )}
                     </td>
                   </tr>

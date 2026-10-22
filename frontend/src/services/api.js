@@ -78,6 +78,11 @@ export const bookingService = {
   getHistory: () => api.get('/bookings/history/'),
   cancel: (id) => api.post(`/bookings/${id}/cancel/`),
   markPaid: (id) => api.post(`/bookings/${id}/mark_paid/`),
+  downloadTicketReport: (id) => api.get(`/bookings/${id}/ticket-report/`, { responseType: 'blob' }),
+  downloadFinancialReport: (params) => api.get('/bookings/financial-report/', {
+    params,
+    responseType: 'blob',
+  }),
 };
 
 export default api;

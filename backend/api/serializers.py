@@ -9,7 +9,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name')
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_staff')
         read_only_fields = ('id',)
 
 
@@ -152,13 +152,22 @@ class BookingListSerializer(serializers.ModelSerializer):
     session_time = serializers.CharField(source='session.start_time', read_only=True)
     hall_name = serializers.CharField(source='session.hall.name', read_only=True)
     seat_info = serializers.SerializerMethodField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
-        fields = ('id', 'user', 'movie_title', 'session_time', 'hall_name', 'seat_info', 'status', 'created_at')
+        fields = (
+            'id', 'user', 'movie_title', 'session_time', 'hall_name',
+            'seat_info', 'price', 'status', 'created_at'
+        )
 
     def get_seat_info(self, obj):
         return f"Ряд {obj.seat.row}, Місце {obj.seat.number}"
+
+    def get_price(self, obj):
+        """Return the saved ticket price or the session base price."""
+        price = obj.price if obj.price is not None else obj.session.base_price
+        return f"{price:.2f}"
 
 
 class BookingDetailSerializer(serializers.ModelSerializer):

@@ -182,6 +182,8 @@ Frontend will be available at: `http://localhost:5173`
 - `GET /api/bookings/history/` - Get booking history
 - `POST /api/bookings/{id}/cancel/` - Cancel booking
 - `POST /api/bookings/{id}/mark_paid/` - Mark as paid
+- `GET /api/bookings/{id}/ticket-report/` - Download the electronic ticket PDF
+- `GET /api/bookings/financial-report/?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD` - Download the staff-only financial analytics workbook
 
 ## Database Models
 

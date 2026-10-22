@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.utils import timezone
 from django.db.models import Q
+from django.http import FileResponse
 from datetime import timedelta
 
 from .models import Movie, Hall, Seat, Session, Booking, HallType
@@ -23,6 +24,7 @@ from .serializers import (
     BookingListSerializer,
     BookingDetailSerializer,
 )
+from .reporting import build_financial_workbook, build_ticket_pdf
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -214,3 +216,46 @@ class BookingViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(booking)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='ticket-report')
+    def ticket_report(self, request, pk=None):
+        """Download an electronic ticket PDF for a booking."""
+        booking = self.get_object()
+        if booking.status == 'cancelled':
+            return Response(
+                {'error': 'Скасований квиток не може бути сформований як касовий чек.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return FileResponse(
+            build_ticket_pdf(booking),
+            as_attachment=True,
+            filename=f'ticket-{booking.id}.pdf',
+            content_type='application/pdf',
+        )
+
+    @action(detail=False, methods=['get'], url_path='financial-report')
+    def financial_report(self, request):
+        """Download a financial analytics workbook for paid bookings."""
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Фінансовий звіт доступний лише працівникам кінотеатру.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        bookings = Booking.objects.filter(status='paid')
+        try:
+            workbook = build_financial_workbook(
+                bookings,
+                date_from=request.query_params.get('date_from'),
+                date_to=request.query_params.get('date_to'),
+            )
+        except ValueError:
+            return Response(
+                {'error': 'Дати мають бути у форматі YYYY-MM-DD.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return FileResponse(
+            workbook,
+            as_attachment=True,
+            filename='financial-analytics.xlsx',
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )

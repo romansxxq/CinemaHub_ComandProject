@@ -106,7 +106,7 @@ class Session(models.Model):
 
 class Booking(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Очікує оплати'),
+        ('pending', 'Заброньовано'),
         ('paid', 'Оплачено'),
         ('cancelled', 'Скасовано'),
     ]

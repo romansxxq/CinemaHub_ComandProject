@@ -155,3 +155,4 @@ class TestBookingSerializer:
         assert 'id' in data
         assert data['status'] == 'pending'
         assert 'user' in data
+        assert data['price'] == '100.00'

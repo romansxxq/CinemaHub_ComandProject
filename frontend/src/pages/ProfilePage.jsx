@@ -92,7 +92,7 @@ function ProfilePage() {
                     <div className="booking-title">
                       <h3>{booking.movie_title}</h3>
                       <span className={`status-badge ${booking.status}`}>
-                        {booking.status === 'paid' ? '✓ Оплачено' : '⏳ Очікує'}
+                        {booking.status === 'paid' ? '✓ Оплачено' : '⏳ Заброньовано'}
                       </span>
                     </div>
                     <p className="booking-datetime">
